@@ -1,0 +1,53 @@
+name: Sync Fork with Upstream
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-fork
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Resolve upstream repository
+        id: repo
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const repo = await github.rest.repos.get(context.repo)
+            if (!repo.data.fork || !repo.data.parent?.full_name) {
+              core.setFailed('This repository is not a fork or has no upstream parent configured.')
+              return
+            }
+
+            core.info(`Fork: ${repo.data.full_name}`)
+            core.info(`Upstream: ${repo.data.parent.full_name}`)
+            core.setOutput('upstream_full_name', repo.data.parent.full_name)
+            core.setOutput('default_branch', repo.data.default_branch)
+
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync default branch
+        env:
+          UPSTREAM: ${{ steps.repo.outputs.upstream_full_name }}
+          DEFAULT_BRANCH: ${{ steps.repo.outputs.default_branch }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git remote add upstream "https://github.com/${UPSTREAM}.git"
+          git fetch upstream "${DEFAULT_BRANCH}"
+          git checkout "${DEFAULT_BRANCH}"
+          git merge --ff-only "upstream/${DEFAULT_BRANCH}"
+          git push origin "${DEFAULT_BRANCH}"
