@@ -1,4 +1,4 @@
-# AWS Student Builder Group — Landing Page
+# AWS Student Builder Group - Cebu Technological University
 
 Static marketing site for the AWS Student Builder Group community. Built with Next.js 16, React 19, TypeScript, and Tailwind CSS.
 
