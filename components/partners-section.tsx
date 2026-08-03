@@ -1,3 +1,7 @@
+'use client'
+
+import { StaggerContainer, StaggerItem } from '@/components/motion'
+
 const partners = [
   { name: 'AWS', role: 'Cloud platform & credits' },
   { name: 'AWS Educate', role: 'Learning resources' },
@@ -23,21 +27,20 @@ export function PartnersSection() {
         </p>
       </div>
 
-      <ul className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3">
+      <StaggerContainer className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3" staggerDelay={0.1}>
         {partners.map((partner) => (
-          <li
-            key={partner.name}
-            className="flex flex-col items-center justify-center rounded-2xl border border-border bg-card px-6 py-8 text-center transition-colors hover:border-primary/50"
-          >
-            <span className="font-mono text-lg font-bold tracking-tight text-foreground">
-              {partner.name}
-            </span>
-            <span className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-              {partner.role}
-            </span>
-          </li>
+          <StaggerItem key={partner.name} className="h-full">
+            <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-border bg-card px-6 py-8 text-center transition-colors hover:border-primary/50">
+              <span className="font-mono text-lg font-bold tracking-tight text-foreground">
+                {partner.name}
+              </span>
+              <span className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                {partner.role}
+              </span>
+            </div>
+          </StaggerItem>
         ))}
-      </ul>
+      </StaggerContainer>
     </section>
   )
 }
