@@ -102,3 +102,11 @@ npm run lint     # ESLint
 - **Dark-only theme.** The site uses a pinned dark mode — no light mode support.
 - **Images unoptimized.** Suitable for static export or CDN hosting.
 - **No typecheck script.** `next.config.mjs` has `ignoreBuildErrors: true`.
+
+## Fork Sync Automation
+
+This repository includes `.github/workflows/sync-fork.yml` to keep the fork's default branch synced with upstream.
+
+- Runs daily at `03:00 UTC`
+- Can also be triggered manually from **Actions → Sync Fork with Upstream**
+- Uses a fast-forward merge (`--ff-only`) so it fails safely if manual conflict resolution is needed
