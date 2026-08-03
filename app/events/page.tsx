@@ -117,7 +117,7 @@ export default async function EventsPage() {
             </div>
             <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {past.map((event) => (
-                <UpcomingEventCard key={event.id} event={event} />
+                <UpcomingEventCard key={event.id} event={event} variant="past" />
               ))}
             </div>
           </section>
