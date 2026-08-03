@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import Image from 'next/image'
 import { Calendar, MapPin, Users, ArrowUpRight, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { MeetupEvent } from '@/lib/events-data'
@@ -113,35 +114,55 @@ export function FeaturedEventCard({ event }: { event: MeetupEvent }) {
   )
 }
 
-/** Medium card for upcoming events. */
-export function UpcomingEventCard({ event }: { event: MeetupEvent }) {
+/** Medium card for upcoming or past events. */
+export function UpcomingEventCard({
+  event,
+  variant = 'upcoming',
+}: {
+  event: MeetupEvent
+  variant?: 'upcoming' | 'past'
+}) {
+  const isPast = variant === 'past'
+
   return (
-    <article className="group flex flex-col rounded-xl border border-border bg-card p-6 transition-colors hover:border-accent/50">
-      <div className="flex items-start gap-4">
-        <DateBlock date={event.date} />
-        <div className="min-w-0">
-          <h3 className="font-mono text-lg font-bold leading-snug text-foreground">
-            {event.name}
-          </h3>
-          <MetaRow event={event} />
+    <article className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-accent/50">
+      {event.imageUrl && (
+        <div className="relative aspect-[16/10] overflow-hidden">
+          <Image
+            src={event.imageUrl}
+            alt=""
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+          />
         </div>
-      </div>
-      <p className="mt-4 flex-1 text-sm leading-relaxed text-muted-foreground">
-        {event.description}
-      </p>
-      <div className="mt-5 flex items-center justify-between gap-3">
-        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Users size={13} />
-          {event.attendeeCount ?? 0} attending
-        </span>
-        <Button
-          render={<a href={event.url} />}
-          variant="link"
-          className="text-sm font-semibold text-violet-foreground hover:text-accent hover:no-underline"
-        >
-          Register
-          <ArrowUpRight size={15} />
-        </Button>
+      )}
+      <div className="flex flex-1 flex-col p-6">
+        <div className="flex items-start gap-4">
+          <DateBlock date={event.date} />
+          <div className="min-w-0">
+            <h3 className="font-mono text-lg font-bold leading-snug text-foreground">
+              {event.name}
+            </h3>
+            <MetaRow event={event} />
+          </div>
+        </div>
+        <p className="mt-4 flex-1 text-sm leading-relaxed text-muted-foreground">
+          {event.description}
+        </p>
+        <div className="mt-5 flex items-center justify-between gap-3">
+          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Users size={13} />
+            {event.attendeeCount ?? 0} {isPast ? 'attended' : 'attending'}
+          </span>
+          <Button
+            render={<a href={event.url} />}
+            variant="link"
+            className="text-sm font-semibold text-violet-foreground hover:text-accent hover:no-underline"
+          >
+            {isPast ? 'See details' : 'Register'}
+            <ArrowUpRight size={15} />
+          </Button>
+        </div>
       </div>
     </article>
   )
