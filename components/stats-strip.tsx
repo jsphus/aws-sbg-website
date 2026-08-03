@@ -11,12 +11,10 @@ import {
 } from 'framer-motion'
 import { DURATION } from '@/components/motion'
 
-const stats = [
-  { value: '600+', label: 'Student members' },
-  { value: '40+', label: 'Workshops run' },
-  { value: '12', label: 'Hackathon wins' },
-  { value: '8', label: 'Partner companies' },
-]
+export type Stat = {
+  value: string
+  label: string
+}
 
 function Counter({ value, suffix }: { value: number; suffix: string }) {
   const shouldReduceMotion = useReducedMotion()
@@ -44,7 +42,7 @@ function Counter({ value, suffix }: { value: number; suffix: string }) {
   )
 }
 
-export function StatsStrip() {
+export function StatsStrip({ stats }: { stats: Stat[] }) {
   return (
     <section className="border-y border-border bg-card/40">
       <div className="mx-auto grid max-w-6xl grid-cols-2 gap-px overflow-hidden px-4 sm:px-6 md:grid-cols-4">

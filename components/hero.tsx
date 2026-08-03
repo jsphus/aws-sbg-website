@@ -70,8 +70,8 @@ export function Hero() {
               Join the group
               <ArrowUpRight size={16} />
             </Button>
-            <Button render={<a href="#programs" />} variant="outline" size="lg">
-              Explore programs
+            <Button render={<a href="#events" />} variant="outline" size="lg">
+              See events
             </Button>
           </motion.div>
         </div>
