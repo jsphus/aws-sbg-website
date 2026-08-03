@@ -49,36 +49,17 @@ function DateBlock({ date }: { date: string }) {
   )
 }
 
-function Badge({
-  children,
-  tone = 'violet',
-}: {
-  children: ReactNode
-  tone?: 'violet' | 'muted'
-}) {
+function Badge({ children }: { children: ReactNode }) {
   return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest ${
-        tone === 'violet'
-          ? 'bg-primary text-primary-foreground'
-          : 'bg-muted text-muted-foreground'
-      }`}
-    >
+    <span className="inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-primary-foreground">
       {children}
     </span>
   )
 }
 
-function MetaRow({
-  event,
-  muted = false,
-}: {
-  event: MeetupEvent
-  muted?: boolean
-}) {
-  const text = muted ? 'text-muted-foreground/70' : 'text-muted-foreground'
+function MetaRow({ event }: { event: MeetupEvent }) {
   return (
-    <div className={`flex flex-wrap items-center gap-x-4 gap-y-1 text-xs ${text}`}>
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
       <span className="inline-flex items-center gap-1.5">
         <Calendar size={13} />
         {formatTime(event.time)}
@@ -161,40 +142,6 @@ export function UpcomingEventCard({ event }: { event: MeetupEvent }) {
           Register
           <ArrowUpRight size={15} />
         </Button>
-      </div>
-    </article>
-  )
-}
-
-/** Smaller, muted card for past events. */
-export function PastEventCard({ event }: { event: MeetupEvent }) {
-  return (
-    <article className="flex flex-col rounded-xl border border-border bg-card/40 p-5 opacity-80">
-      <div className="flex items-start gap-4">
-        <DateBlock date={event.date} />
-        <div className="min-w-0">
-          <Badge tone="muted">Past</Badge>
-          <h3 className="mt-2 font-mono text-base font-bold leading-snug text-foreground">
-            {event.name}
-          </h3>
-          <MetaRow event={event} muted />
-        </div>
-      </div>
-      <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground/80">
-        {event.description}
-      </p>
-      <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
-        <span className="inline-flex items-center gap-1.5">
-          <Users size={13} />
-          {event.attendeeCount ?? 0} attended
-        </span>
-        <a
-          href={event.url}
-          className="inline-flex items-center gap-1 font-semibold text-violet-foreground transition-colors hover:text-accent"
-        >
-          Recap
-          <ArrowUpRight size={13} />
-        </a>
       </div>
     </article>
   )

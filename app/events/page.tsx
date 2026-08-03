@@ -2,13 +2,9 @@ import { ArrowUpRight } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { Button } from '@/components/ui/button'
-import {
-  FeaturedEventCard,
-  UpcomingEventCard,
-  PastEventCard,
-} from '@/components/event-card'
-import { pastEvents } from '@/lib/events-data'
-import { fetchMeetupEvents } from '@/lib/meetup'
+import { FeaturedEventCard, UpcomingEventCard } from '@/components/event-card'
+import { getAllEvents } from '@/lib/meetup'
+import { SITE_CONFIG } from '@/lib/config'
 
 // Revalidate every 6 hours (21600 seconds). Adjust as needed:
 // 3600 = hourly, 86400 = daily.
@@ -21,17 +17,20 @@ export const metadata = {
 }
 
 export default async function EventsPage() {
-  let upcomingEvents: Awaited<ReturnType<typeof fetchMeetupEvents>> = []
+  let upcoming: Awaited<ReturnType<typeof getAllEvents>>['upcoming'] = []
+  let past: Awaited<ReturnType<typeof getAllEvents>>['past'] = []
   let feedError = false
 
   try {
-    upcomingEvents = await fetchMeetupEvents()
+    const result = await getAllEvents()
+    upcoming = result.upcoming
+    past = result.past
   } catch {
     feedError = true
   }
 
-  const featuredEvent = upcomingEvents[0]
-  const remainingUpcoming = upcomingEvents.slice(1)
+  const featuredEvent = upcoming[0]
+  const remainingUpcoming = upcoming.slice(1)
 
   return (
     <div className="min-h-screen bg-background">
@@ -61,9 +60,16 @@ export default async function EventsPage() {
         ) : (
           <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
             <div className="rounded-xl border border-border bg-card p-8 text-center">
-              <p className="text-muted-foreground">
-                No upcoming events right now. Check back soon!
+              <p className="font-mono text-lg font-bold text-foreground">
+                No upcoming events
               </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                We&apos;re planning our next events. Check back soon or join our Meetup group to stay updated.
+              </p>
+              <Button render={<a href={SITE_CONFIG.meetupGroupUrl} />} className="mt-6">
+                Join on Meetup
+                <ArrowUpRight size={16} />
+              </Button>
             </div>
           </section>
         )}
@@ -99,21 +105,23 @@ export default async function EventsPage() {
         )}
 
         {/* Past events */}
-        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-          <div>
-            <h2 className="font-mono text-3xl font-bold tracking-tight text-foreground">
-              Past Events
-            </h2>
-            <p className="mt-3 text-pretty text-muted-foreground">
-              A look back at what we&apos;ve built together.
-            </p>
-          </div>
-          <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {pastEvents.map((event) => (
-              <PastEventCard key={event.id} event={event} />
-            ))}
-          </div>
-        </section>
+        {past.length > 0 && (
+          <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+            <div>
+              <h2 className="font-mono text-3xl font-bold tracking-tight text-foreground">
+                Past Events
+              </h2>
+              <p className="mt-3 text-pretty text-muted-foreground">
+                A look back at what we&apos;ve built together.
+              </p>
+            </div>
+            <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {past.map((event) => (
+                <UpcomingEventCard key={event.id} event={event} />
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* CTA */}
         <section className="border-t border-border bg-card/40">
@@ -127,9 +135,7 @@ export default async function EventsPage() {
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
               <Button
-                render={
-                  <a href="https://meetup.com/aws-student-builder-group" />
-                }
+                render={<a href={SITE_CONFIG.meetupGroupUrl} />}
                 size="lg"
               >
                 Join our Meetup group
@@ -149,7 +155,7 @@ export default async function EventsPage() {
         {feedError && (
           <div className="mx-auto max-w-6xl px-4 pb-8 sm:px-6">
             <p className="text-center text-xs text-muted-foreground/60">
-              Live events are temporarily unavailable. Showing cached data.
+              Live events are temporarily unavailable. Check back soon.
             </p>
           </div>
         )}

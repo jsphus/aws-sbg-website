@@ -17,3 +17,6 @@ node_modules
 
 # Deepwork progress files
 .slim
+
+# One-time seed script (remove after running)
+seed-events.mjs

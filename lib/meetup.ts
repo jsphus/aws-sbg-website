@@ -1,5 +1,16 @@
 import ical from 'node-ical'
 import type { MeetupEvent } from './events-data'
+import { SITE_CONFIG } from './config'
+import { mergeAndStoreEvents, getUpcomingEvents, getPastEvents } from './events-store'
+
+/**
+ * Extract the first image URL from HTML content.
+ * Meetup embeds event images as <img> tags in the iCal DESCRIPTION field.
+ */
+function extractImage(html: string): string | undefined {
+  const match = html.match(/<img[^>]+src=["']([^"']+)["']/i)
+  return match?.[1]
+}
 
 /**
  * Strip HTML tags from a string, returning plain text.
@@ -19,6 +30,8 @@ function resolveParam(val: string | { val: string; params: Record<string, string
 /**
  * Fetch and parse the Meetup iCal feed into a clean, typed list of upcoming
  * events, sorted soonest-first with HTML-stripped descriptions.
+ *
+ * Also saves events to the Redis store so past events are preserved.
  *
  * Reads the feed URL from process.env.MEETUP_ICAL_URL.
  * Throws a clear error if that env var is missing or the fetch fails.
@@ -46,7 +59,7 @@ export async function fetchMeetupEvents(): Promise<MeetupEvent[]> {
   const parsed = ical.parseICS(icsText)
   const now = new Date()
 
-  const events: MeetupEvent[] = []
+  const upcomingFromFeed: MeetupEvent[] = []
 
   for (const key of Object.keys(parsed)) {
     const component = parsed[key]
@@ -58,7 +71,6 @@ export async function fetchMeetupEvents(): Promise<MeetupEvent[]> {
     if (!event.start || event.start < now) continue
 
     const startDate = new Date(event.start)
-    const endDate = event.end ? new Date(event.end) : undefined
 
     // Format date as ISO date string (YYYY-MM-DD)
     const dateStr = startDate.toISOString().split('T')[0]
@@ -70,6 +82,7 @@ export async function fetchMeetupEvents(): Promise<MeetupEvent[]> {
 
     // Extract and clean description
     const rawDescription = event.description ? resolveParam(event.description) : ''
+    const imageUrl = extractImage(rawDescription)
     const description = stripHtml(rawDescription)
 
     // Extract location
@@ -78,7 +91,7 @@ export async function fetchMeetupEvents(): Promise<MeetupEvent[]> {
     // Extract URL (use the iCal URL property or fall back to feed URL)
     const url = event.url || feedUrl
 
-    events.push({
+    upcomingFromFeed.push({
       id: event.uid || `event-${key}`,
       name: event.summary ? resolveParam(event.summary) : 'Untitled Event',
       description,
@@ -86,16 +99,57 @@ export async function fetchMeetupEvents(): Promise<MeetupEvent[]> {
       time: timeStr,
       location,
       url,
+      imageUrl,
       status: 'upcoming',
       group: {
         name: 'AWS Student Builder Group',
-        url: 'https://meetup.com/aws-student-builder-group',
+        url: SITE_CONFIG.meetupGroupUrl,
       },
     })
   }
 
   // Sort soonest-first
-  events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  upcomingFromFeed.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
-  return events
+  // Merge with stored events (preserves past events automatically)
+  try {
+    await mergeAndStoreEvents(upcomingFromFeed)
+  } catch {
+    // Redis unavailable — just return feed data
+  }
+
+  return upcomingFromFeed
+}
+
+/**
+ * Get all events — upcoming from the iCal feed (merged with store),
+ * plus past events from the store.
+ *
+ * This is the main function components should call.
+ */
+export async function getAllEvents(): Promise<{
+  upcoming: MeetupEvent[]
+  past: MeetupEvent[]
+}> {
+  let upcoming: MeetupEvent[] = []
+
+  try {
+    upcoming = await fetchMeetupEvents()
+  } catch {
+    // Feed unavailable — fall back to stored upcoming events
+    try {
+      upcoming = await getUpcomingEvents()
+    } catch {
+      // Redis also unavailable
+    }
+  }
+
+  let past: MeetupEvent[] = []
+  try {
+    past = await getPastEvents()
+  } catch {
+    // Redis unavailable
+  }
+
+  return { upcoming, past }
 }

@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { Calendar, MapPin, ArrowUpRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { StaggerContainer, StaggerItem } from '@/components/motion'
@@ -10,6 +11,7 @@ export type EventCard = {
   title: string
   body: string
   url?: string
+  imageUrl?: string
 }
 
 export function EventsGrid({
@@ -24,6 +26,16 @@ export function EventsGrid({
       {events.map((event) => (
         <StaggerItem key={event.title} className="h-full">
           <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-accent/50">
+            {event.imageUrl && (
+              <div className="relative aspect-[16/10] overflow-hidden">
+                <Image
+                  src={event.imageUrl}
+                  alt=""
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              </div>
+            )}
             <div className="flex flex-1 flex-col p-5">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5">
